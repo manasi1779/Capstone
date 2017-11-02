@@ -77,7 +77,7 @@ public class QueryCypher {
             labelPattern.name = nextlabel;
         }
         cypherQuery = cypherQuery.substring(0, cypherQuery.length()-1);
-        cypherQuery = addReturn(cypherQuery, parser.project);
+        cypherQuery = addIntermediateReturn(cypherQuery, parser.project, parser.wheres);
         System.out.println(cypherQuery);
         if(parser.join != null)
             makeJoinWithoutWhere(parser);
@@ -241,12 +241,12 @@ public class QueryCypher {
                 }
             );
             parser.project.stream().forEach(
-                    o -> {
-                        System.out.println(o);
-                        if(!projects.contains(o)) {
-                            projects.add(o);
-                        }
+                o -> {
+                    System.out.println(o);
+                    if(!projects.contains(o)) {
+                        projects.add(o);
                     }
+                }
             );
             edges.addAll(parser.edges);
             labelMap.putAll(parser.labelsMap);
@@ -303,10 +303,13 @@ public class QueryCypher {
         for(String label: required){
             cypherQuery += label+",";
         }
+        HashSet<String> addedTokens = new HashSet<>();
         for(ComplexWhere complexWhere: wheres){
             for(Where where: complexWhere.wheres){
-                if(!required.contains(where.labelToken))
+                if(!required.contains(where.labelToken) && !addedTokens.contains(where.labelToken)){
                     cypherQuery += where.labelToken+",";
+                    addedTokens.add(where.labelToken);
+                }
             }
         }
         cypherQuery = cypherQuery.substring(0, cypherQuery.length()-1);
@@ -336,53 +339,6 @@ public class QueryCypher {
         System.out.println();
     }
 
-    /**
-     * This method obtains optimal predicate order by comparing the node sizes for labels in the predicate
-     * Applies the predicate on result set obtained from pattern matching
-     * in decreasing order of node sizes so that maximum nodes are filtered first
-     * @param result
-     */
-    public List<Map> applyPredicate(List<Map> result,Parser parser) {
-        Optimizer optimizer = new Optimizer();
-        ArrayList<ComplexWhere> whereOrder = optimizer.getPredicateOrder(db, parser);
-        int i = 0;
-        for (ComplexWhere complexWhere : whereOrder) {
-            List<Map> newresult = new LinkedList();
-            result.stream().forEach(
-                o -> {
-                    boolean complexCheck = false;
-                    if (complexWhere instanceof WhereAnd) {
-                        for(Where where : complexWhere.wheres) {
-                            if (o.containsKey(where.labelToken)) {
-                                if (((Node)o.get(where.labelToken)).getProperty(where.property).equals(where.value)) {
-                                    complexCheck = true;
-                                } else {
-                                    complexCheck = false;
-                                    break;
-                                }
-                            }
-                            else
-                                break;
-                        }
-                    } else {
-                        for (Where where : complexWhere.wheres) {
-                            if (o.containsKey(where.labelToken)) {
-                                if (((Node)o.get(where.labelToken)).getProperty(where.property).equals(where.value)) {
-                                    complexCheck = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if(complexCheck){
-                        newresult.add((Map) o);
-                    }
-                }
-            );
-            result = newresult;
-        }
-        return result;
-    }
 
     /**
      * Apply selection and relabel nodes with new label
