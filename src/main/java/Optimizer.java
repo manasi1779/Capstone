@@ -13,13 +13,13 @@ public class Optimizer {
      * @param parser
      * @param db
      */
-    public static ArrayList<ComplexWhere> getSortedWheres(Parser parser, GraphDatabaseService db){
+    public static ArrayList<ComplexWhere> getSortedWheres(GraphDatabaseService db, Parser parser){
         HashMap<String, Long> counts = new HashMap<>();
         Transaction tx = db.beginTx();
 
         for(ComplexWhere complexWhere: parser.wheres){
             for (Where where: complexWhere.wheres){
-                String distinctQuery = "MATCH (node:"+parser.labelsMap.get(where.labelToken).name+") return collect(distinct node."+where.property;
+                String distinctQuery = "MATCH (node:"+parser.labelsMap.get(where.labelToken).name+") return collect(distinct node."+where.property+")";
                 Result result = db.execute(distinctQuery);
                 counts.put(parser.labelsMap.get(where.labelToken).name, result.stream().count());
                 tx.success();
@@ -40,22 +40,22 @@ public class Optimizer {
                     return 1;
             }
         }).forEach(
-                o -> {
-                    ComplexWhere complexWhere;
-                    if(o instanceof WhereAnd)
-                        complexWhere = new WhereAnd();
-                    else
-                        complexWhere = new WhereOr();
-                    List<Where> sortedWheres =
-                    o.wheres.stream().sorted(new Comparator<Where>() {
-                        @Override
-                        public int compare(Where o1, Where o2) {
-                            return (int) (counts.get(parser.labelsMap.get(o1.labelToken)) - counts.get(parser.labelsMap.get(o2.labelToken)));
-                        }
-                    }).collect(Collectors.toList());
-                    complexWhere.wheres = sortedWheres;
-                    sortedComplexWheres.add(complexWhere);
-                }
+            o -> {
+                ComplexWhere complexWhere;
+                if(o instanceof WhereAnd)
+                    complexWhere = new WhereAnd();
+                else
+                    complexWhere = new WhereOr();
+                List<Where> sortedWheres =
+                o.wheres.stream().sorted(new Comparator<Where>() {
+                    @Override
+                    public int compare(Where o1, Where o2) {
+                        return (int) (counts.get(parser.labelsMap.get(o1.labelToken).name) - counts.get(parser.labelsMap.get(o2.labelToken).name));
+                    }
+                }).collect(Collectors.toList());
+                complexWhere.wheres = sortedWheres;
+                sortedComplexWheres.add(complexWhere);
+            }
         );
         return sortedComplexWheres;
     }
