@@ -1,0 +1,56 @@
+//Single where
+SELECT
+m1 movie
+d1 director
+MATCH
+m1 d1
+WHERE
+d1.firstname=james AND d1.lastname=cameron
+
+//multiple wheres: not working due to parser
+SELECT
+m1 movie
+d1 director
+MATCH
+m1 d1
+WHERE
+d1.first=Stuart AND d1.last=Acher
+
+m1.title=#Stuck AND m1.year=2014
+
+//single where: fake data
+SELECT
+p1 A
+p2 A
+from g1
+MATCH
+p1 p2
+WHERE
+p1.name=moony AND p2.name=wormtail
+
+//multiple select: fake data
+SELECT
+p1 A
+p2 A
+from g1
+SELECT
+p1 A
+p2 A
+from g2
+MATCH
+p1 p2
+WHERE
+p1.name=moony AND p2.name=wormtail
+
+//Join operation
+SELECT
+p1 A
+p2 A
+from g1
+SELECT
+p1 A
+p2 A
+from g2
+MATCH
+p1 p2
+JOIN p1.name = p2.name

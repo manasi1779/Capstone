@@ -1,0 +1,158 @@
+SELECT
+a1 A
+a2 A
+MATCH
+a1 a2
+WHERE
+a2.name=moony AND a1.name=padfoot
+
+SELECT
+a1 A
+a2 A
+a3 A
+a4 A
+MATCH
+a1 a2
+a3 a4
+WHERE
+a2.name=moony AND a1.name=padfoot
+a3.name=wormtail AND a4.name=prongs
+
+SELECT
+a1 movie
+a2 actor
+a3 director
+a4 genre
+MATCH
+a1 a2
+a1 a3
+a1 a4
+WHERE
+a2.first=Erin AND a3.first=Timothy
+a4.genre=Comedy AND a2.last=Borg
+
+SELECT
+a1 movie
+a3 director
+PROJECT a1
+MATCH
+a1 a3
+WHERE
+a3.first=Timothy AND a3.last=Wilde
+
+SELECT
+a1 movie
+a2 actor
+PROJECT a1
+MATCH
+a1 a2
+WHERE
+a2.first=Erin AND a2.last=Borg
+
+SELECT
+a1 movie
+a4 genre
+MATCH
+a1 a4
+WHERE
+a4.genre=Comedy
+
+SELECT
+a1 A
+a2 A
+a3 A
+a4 A
+a5 A
+a6 A
+a7 A
+a8 A
+MATCH
+a1 a2
+a3 a4
+a5 a6
+a7 a8
+WHERE
+a1.name=moony AND a3.name=prongs
+a5.name=harry AND a7.name=ron
+
+
+
+SELECT
+a1 A
+a2 A
+FROM G1
+SELECT
+a3 A
+a4 A
+FROM G2
+PROJECT a1 a3
+MATCH
+a1 a2
+a3 a4
+WHERE
+a2.name=moony AND a4.name=moony
+JOIN
+G1.a1.name=G2.a3.name
+
+SELECT
+a1 A
+a2 A
+a3 A
+a4 A
+FROM G1
+SELECT
+a5 A
+a6 A
+a7 A
+a8 A
+FROM G2
+MATCH
+a1 a2
+a2 a3
+a3 a4
+a5 a6
+a6 a7
+a7 a8
+WHERE
+a2.name=moony AND a6.name=moony
+JOIN
+G1.a1.name=G2.a5.name
+
+SELECT
+a1 A
+a2 A
+a3 A
+a4 A
+a5 B
+a6 B
+a7 B
+a8 B
+FROM G1
+SELECT
+a9 A
+a10 A
+a11 A
+a12 A
+a13 B
+a14 B
+a15 B
+a16 B
+FROM G2
+MATCH
+a1 a2
+a2 a3
+a3 a4
+a5 a6
+a6 a7
+a7 a8
+a9 a10
+a10 a11
+a11 a12
+a13 a14
+a14 a15
+a15 a16
+WHERE
+a2.name=moony AND a10.name=moony
+a6.name=ron AND a14.name=ron
+JOIN
+G1.a1.name=G2.a9.name

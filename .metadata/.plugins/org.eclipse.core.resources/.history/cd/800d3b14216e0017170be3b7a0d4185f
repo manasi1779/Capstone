@@ -1,0 +1,142 @@
+package com.project;
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.neo4j.graphdb.GraphDatabaseService;
+import org.neo4j.graphdb.Label;
+import org.neo4j.graphdb.Node;
+import org.neo4j.graphdb.Relationship;
+import org.neo4j.graphdb.ResourceIterable;
+import org.neo4j.graphdb.Transaction;
+import org.neo4j.graphdb.factory.GraphDatabaseFactory;
+
+public class EvaluationForEachNode {
+
+	private static File dataFile = new File("C:\\Users\\pragatiunde1990\\Documents\\Neo4j\\MultiProteinNodeForEachDB");
+	private static File queryFile = new File("C:/Users/pragatiunde1990/Documents/Neo4j/MultiProteinQueryGraphForEachDB");
+	private static GraphDatabaseService dbTargetData;
+	private static GraphDatabaseService dbTargetQuery;
+	private static Map<Long, ArrayList<Long>> searchSpace = new HashMap<Long, ArrayList<Long>>();
+	private static Map<Long, Long> results = new HashMap<Long, Long>();
+
+	public static void main(String[] args) {
+		dbTargetData = new GraphDatabaseFactory().newEmbeddedDatabase(dataFile);
+		dbTargetQuery = new GraphDatabaseFactory().newEmbeddedDatabase(queryFile);
+
+		Long beginTime = System.currentTimeMillis();
+		try (Transaction dataTransaction = dbTargetData.beginTx()) {
+			try (Transaction queryTransaction = dbTargetQuery.beginTx()) {
+				org.neo4j.graphdb.Result resultDB = dbTargetData
+						.execute(" MATCH (n) RETURN distinct(n.DatasetName) as dbName");
+				while (((org.neo4j.graphdb.Result) resultDB).hasNext()) {
+					Map<String, Object> row = ((org.neo4j.graphdb.Result) resultDB).next();
+					// System.out.println("Database Name: "+row.get("dbName"));
+					//System.out.println("Datbase number:" + (count++));
+					ResourceIterable<Node> queryTargetNodes = dbTargetQuery.getAllNodes();
+					for (Node node : queryTargetNodes) {
+						Iterable<Label> labels = node.getLabels();
+						for (Label lb : labels) {
+							if ((String) row.get("dbName") != null && lb.toString().length()==1) {
+								ArrayList<Long> matchLabels = findMatchLabels(lb, (String) row.get("dbName"));
+								String ID=(String) node.getProperty("originalId");
+								if(!ID.equals("EXTRA")){
+									Long nodeID=Long.parseLong((String) node.getProperty("originalId"));
+									searchSpace.put(nodeID, matchLabels);
+								}
+								
+							}
+						}
+					}
+					System.out.println(searchSpace);
+					Long[] queryLabels = searchSpace.keySet().toArray(new Long[searchSpace.size()]);
+					//System.out.println(queryLabels.toString().contains("EXTRA"));
+					subgraphMaching(queryLabels, 0);
+
+					dataTransaction.success();
+					queryTransaction.success();
+
+				}
+
+				queryTransaction.close();
+				dataTransaction.close();
+			}
+		} catch (Exception e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+		Long endTime = System.currentTimeMillis();
+		Long totalTime = endTime - beginTime;
+		System.out.println("Performance of graph: " + totalTime);
+		// System.out.println(result);
+	}
+
+	private static void subgraphMaching(Long[] queryLabels, int i) {
+		if (queryLabels.length == results.size()) {
+			System.out.println(results);
+
+		} else {
+			Long u = queryLabels[i];
+			//System.out.println("u: "+u);
+			ArrayList<Long> searchSpaceOfU = searchSpace.get(u);
+			//System.out.println("Searchspace: "+searchSpaceOfU);
+			for (Long v : searchSpaceOfU) {
+				if (!(results.containsValue(v)) && (canMap(u, v, queryLabels))) {
+					results.put(u, v);
+					subgraphMaching(queryLabels, i + 1);
+					results.remove(u);
+				}
+
+			}
+
+		}
+
+	}
+
+	private static boolean canMap(Long u, Long v, Long[] queryLabels) {
+		for (Long id : queryLabels) {
+			if (u.equals(id))
+				continue;
+			if (isEdge(id, u, dbTargetQuery) && (results.containsKey(id))) {
+				if (!isEdge(results.get(id), v, dbTargetData))
+					return false;
+			}
+		}
+		return true;
+	}
+
+	private static boolean isEdge(Long u, Long id, GraphDatabaseService graph) {
+		Node start = graph.getNodeById(u);
+		Node end = graph.getNodeById(id);
+		Iterable<Relationship> relations = start.getRelationships();
+		for (Relationship rel : relations) {
+			if (rel.getOtherNode(start).equals(end))
+				return true;
+		}
+		return false;
+	}
+
+	private static ArrayList<Long> findMatchLabels(Label lb, String dbName) {
+		ArrayList<Long> matchLables = new ArrayList<Long>();
+		try{
+		String query = "MATCH p=(a:`" + dbName + "`)-[r:databaseEdge]->(n:"+lb+") RETURN n.originalId";
+		// System.out.println(query);
+		org.neo4j.graphdb.Result result = dbTargetData.execute(query);
+		
+		while (((org.neo4j.graphdb.Result) result).hasNext()) {
+			Map<String, Object> row = ((org.neo4j.graphdb.Result) result).next();
+			String nodeID=row.get("n.originalId").toString();
+			boolean flag= (Character.isDigit(nodeID.charAt(0)))? true:false;
+			if(flag)
+				matchLables.add(Long.parseLong(row.get("n.originalId").toString()));
+			}
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		return matchLables;
+	}
+
+}
