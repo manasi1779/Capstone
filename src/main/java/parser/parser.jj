@@ -4,18 +4,20 @@ options {
 }
 
 PARSER_BEGIN(Parser)
+
     import java.io.*;
     import java.util.*;
+    import graphql.*;
 
     public class Parser {
-        public HashMap<String, graphql.LabelPattern> labelsMap = new HashMap();
+        public HashMap<String, LabelPattern> labelsMap = new HashMap();
         public String from1, from2;
         public ArrayList<String> project = new ArrayList();
-        public ArrayList<graphql.LabelPattern> labels1 = new ArrayList();
-        public ArrayList<graphql.LabelPattern> labels2 = new ArrayList();
-        public ArrayList<graphql.Edge> edges = new ArrayList();
-        public ArrayList<graphql.ComplexWhere> wheres = new ArrayList();
-        public graphql.Join join;
+        public ArrayList<LabelPattern> labels1 = new ArrayList();
+        public ArrayList<LabelPattern> labels2 = new ArrayList();
+        public ArrayList<Edge> edges = new ArrayList();
+        public ArrayList<ComplexWhere> wheres = new ArrayList();
+        public Join join;
 
         public static void main( String[] args )throws ParseException, TokenMgrError {
             Parser parser = new Parser( System.in ) ;
@@ -158,7 +160,7 @@ void Start():
 
 ArrayList SelectClause():
 {
-    ArrayList<graphql.LabelPattern> labels = new ArrayList();
+    ArrayList<LabelPattern> labels = new ArrayList();
     Token token, name, attribute;
     ArrayList<String> attributes;
 }
@@ -181,7 +183,7 @@ ArrayList SelectClause():
                 }
             )*
             {
-                graphql.LabelPattern l = new graphql.LabelPattern(token.toString(), name.toString(), attributes);
+                LabelPattern l = new LabelPattern(token.toString(), name.toString(), attributes);
                 labelsMap.put(token.toString(), l);
                 labels.add(l);
             }
@@ -225,7 +227,7 @@ String FromClause():{
     }
 }
 ArrayList MatchClause():{
-    ArrayList<graphql.Edge> edges = new ArrayList();
+    ArrayList<Edge> edges = new ArrayList();
     String from, to;
     Token f, t;
 }
@@ -242,7 +244,7 @@ ArrayList MatchClause():{
         {
         from = f.toString();
         to = t.toString();
-        graphql.Edge edge = new graphql.Edge(labelsMap.get(from), labelsMap.get(to));
+        Edge edge = new Edge(labelsMap.get(from), labelsMap.get(to));
         edges.add(edge);
         }
     )*
@@ -253,9 +255,9 @@ ArrayList MatchClause():{
 
 ArrayList WhereClause():
 {
-    ArrayList<graphql.ComplexWhere> wheres = new ArrayList();
-    graphql.ComplexWhere complexWhere = null;
-    graphql.Where where = null;
+    ArrayList<ComplexWhere> wheres = new ArrayList();
+    ComplexWhere complexWhere = null;
+    Where where = null;
     Token complex = null;
 }
 {
@@ -272,9 +274,9 @@ ArrayList WhereClause():
             <SPACE>
             {
                 if(complex.toString().equalsIgnoreCase("AND"))
-                    complexWhere = new graphql.WhereAnd();
+                    complexWhere = new WhereAnd();
                 else
-                    complexWhere = new graphql.WhereOr();
+                    complexWhere = new WhereOr();
                 complexWhere.wheres.add(where);
             }
             where = expression()
@@ -291,7 +293,7 @@ ArrayList WhereClause():
         return wheres;
     }
 }
-graphql.Join JoinClause():
+Join JoinClause():
 {
     Token db1, db2, label1, property1, label2, property2, operator;
 }
@@ -314,13 +316,13 @@ graphql.Join JoinClause():
 
     )
     {
-        return new graphql.Join(db1.toString(), db2.toString(), label1.toString(), property1.toString(), label2.toString(), property2.toString(), operator.toString());
+        return new Join(db1.toString(), db2.toString(), label1.toString(), property1.toString(), label2.toString(), property2.toString(), operator.toString());
     }
 }
 
-graphql.Where expression():
+Where expression():
 {
-    graphql.Where where = null;
+    Where where = null;
     Token label = null, property = null, operator = null, value =null;
 }
 {
@@ -331,9 +333,9 @@ graphql.Where expression():
     value = <IDENTIFIER>
     {
         if(value.kind == NUMERIC)
-            where = new graphql.Where(label.toString(), property.toString(), operator.toString(), Integer.parseInt(value.toString()));
+            where = new Where(label.toString(), property.toString(), operator.toString(), Integer.parseInt(value.toString()));
         else
-            where = new graphql.Where(label.toString(), property.toString(), operator.toString(), value.toString());
+            where = new Where(label.toString(), property.toString(), operator.toString(), value.toString());
         return where;
     }
 }
