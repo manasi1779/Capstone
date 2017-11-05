@@ -5,16 +5,16 @@ options {
 
 PARSER_BEGIN(Parser)
 
+    package parser;
     import java.io.*;
     import java.util.*;
     import graphql.*;
 
     public class Parser {
         public HashMap<String, LabelPattern> labelsMap = new HashMap();
-        public String from1, from2;
+        public String from[] = new String[2];
         public ArrayList<String> project = new ArrayList();
-        public ArrayList<LabelPattern> labels1 = new ArrayList();
-        public ArrayList<LabelPattern> labels2 = new ArrayList();
+        public ArrayList<LabelPattern> labels[] = new ArrayList[2];
         public ArrayList<Edge> edges = new ArrayList();
         public ArrayList<ComplexWhere> wheres = new ArrayList();
         public Join join;
@@ -144,12 +144,12 @@ void Start():
     |
     (
         (
-            labels1 =  SelectClause()
-            (from1 = FromClause())?
+            labels[0] =  SelectClause()
+            (from[0] = FromClause())?
         )
         (
-            labels2 =  SelectClause()
-            (from2 = FromClause())?
+            labels[1] =  SelectClause()
+            (from[1] = FromClause())?
         )?
         (project = ProjectClause())?
         (edges = MatchClause())

@@ -15,7 +15,7 @@ public class QueryCypher {
 
     public static void main(String[] args){
         QueryCypher qc = new QueryCypher();
-        File dataFolder = new File("D:\\databases\\small_graph.db");
+        File dataFolder = new File("D:\\databases\\fake_graph.db");
         qc.db = new GraphDatabaseFactory().newEmbeddedDatabaseBuilder(dataFolder).setConfig(GraphDatabaseSettings.pagecache_memory, "256M" ).setConfig(GraphDatabaseSettings.string_block_size, "60" ).setConfig(GraphDatabaseSettings.array_block_size, "300" ).newGraphDatabase();
         Scanner s = new Scanner(System.in);
         display();
@@ -71,8 +71,10 @@ public class QueryCypher {
      * @param parser
      */
     public void createAndRunDecomposedQuery(Parser parser){
-        if(parser.join != null)
-            makeJoinWithoutWhere(parser);
+        if(parser.join != null){
+            join(parser);
+            tearDown();
+        }
         else {
             applyPatternThenPredicate(parser);
             tearDown();
@@ -85,7 +87,7 @@ public class QueryCypher {
         String cypherQuery = addMatch(parser.edges);
         // put in labelsMap new label and set it to result as well
         cypherQuery += "Set ";
-        for(LabelPattern label: parser.labels1){
+        for(LabelPattern label: parser.labels[0]){
             String nextlabel = getNextLabel();
             cypherQuery += label.token+":"+nextlabel+",";
             LabelPattern labelPattern = parser.labelsMap.get(label.token);
@@ -169,7 +171,7 @@ public class QueryCypher {
         HashMap labelMap = new HashMap();
         for(Parser parser: parsers){
             wheres.addAll(parser.wheres);
-            parser.labels1.stream().forEach(
+            parser.labels[0].stream().forEach(
                 o -> {
                     System.out.println(o);
                     if(!labels.contains(o)) {
@@ -201,7 +203,7 @@ public class QueryCypher {
         Parser parser = new Parser(System.in);
         parser.project = projects;
         parser.wheres = wheres;
-        parser.labels1 = labels;
+        parser.labels[0] = labels;
         parser.labelsMap = labelMap;
         parser.edges = edges;
         return parser;
@@ -327,6 +329,7 @@ public class QueryCypher {
             System.out.println(cypherQuery);
             Transaction tx = db.beginTx();
             db.execute(cypherQuery);
+            tx.success();
             tx.close();
         }
     }
@@ -335,40 +338,99 @@ public class QueryCypher {
     ArrayList<String> newLabels = new ArrayList<>();
 
     public String getNextLabel(){
-        return "G"+labelCount++;
+        return "Graph"+labelCount++;
     }
 
-    public void performJoin(Join join, List<Map> result1, List<Map> result2, HashMap<String, LabelPattern> labelsMap){
+    public void join(Parser parser){
         Transaction tx = db.beginTx();
-        for(Map res: result1){
-            for(Map res2: result2){
-                Object value1 = null, value2 = null;
-                if(res.containsKey(join.labelToken1))
-                    value1 = ((Node)res.get(join.labelToken1)).getProperty(join.property1);
-                if(res2.containsKey(join.labelToken2))
-                    value2 = ((Node)res2.get(join.labelToken2)).getProperty(join.property2);
-                if(value1 != null && value2 != null){
-                    if(join.performOperation(value1,value2)){
-                        ((Node) res.get(join.labelToken1)).createRelationshipTo((Node)res2.get(join.labelToken2), RelationshipType.withName("join on "+join));
-                    }
-                }
-                value1 = null; value2 = null;
-                if(res.containsKey(join.labelToken2))
-                    value1 = ((Node)res.get(join.labelToken2)).getProperty(join.property2);
-                if(res2.containsKey(join.labelToken1))
-                    value2 = ((Node)res2.get(join.labelToken1)).getProperty(join.property1);
-                if(value1 != null && value2 != null && join.performOperation(value1, value2))
-                    ((Node) res.get(join.labelToken1)).createRelationshipTo((Node)res2.get(join.labelToken2), RelationshipType.withName("join on "+join));         }
+        Result rs1 = getJoinResult(parser, 0);
+        Result rs2 = getJoinResult(parser, 1);
+        while(rs1.hasNext()){
+            Map<String, Object> record = rs1.next();
+            String createRelationQuery =
+                    "Match ("+parser.join.labelToken[0]+":"+parser.labelsMap.get(parser.join.labelToken[0]).name+"{"+
+                            parser.join.property[0]+":\""+
+                            ((Node)record.get(parser.join.labelToken[0])).getProperty(parser.join.property[0])+
+                            "\"}), (" +
+                            parser.join.labelToken[1]+":"+parser.labelsMap.get(parser.join.labelToken[1]).name+"{"+
+                            parser.join.property[1]+":\""+
+                            ((Node)record.get(parser.join.labelToken[0])).getProperty(parser.join.property[0])+
+                            "\"}) " +
+                            " Set ";
+            String nlabel =     getNextLabel();
+            newLabels.add(nlabel);
+            createRelationQuery += parser.join.labelToken[0]+":"+nlabel+",";
+            nlabel = getNextLabel();
+            newLabels.add(nlabel);
+            createRelationQuery += parser.join.labelToken[1]+":"+nlabel;
+            createRelationQuery += " create ("+parser.join.labelToken[0]+")-[r: join]->("+parser.join.labelToken[1]+")";
+            System.out.println(createRelationQuery);
+            db.execute(createRelationQuery);
+        }
+
+        while(rs2.hasNext()){
+            Map<String, Object> record = rs2.next();
+            String createRelationQuery =
+                    "Match ("+parser.join.labelToken[0]+":"+parser.labelsMap.get(parser.join.labelToken[0]).name+"{"+
+                            parser.join.property[0]+":\""+
+                            ((Node)record.get(parser.join.labelToken[1])).getProperty(parser.join.property[1])+
+                            "\"}), (" +
+                            parser.join.labelToken[1]+":"+parser.labelsMap.get(parser.join.labelToken[1]).name+"{"+
+                            parser.join.property[1]+":\""+
+                            ((Node)record.get(parser.join.labelToken[1])).getProperty(parser.join.property[1])+
+                            "\"}) " +
+                            " Set ";
+            String nlabel =     getNextLabel();
+            newLabels.add(nlabel);
+            createRelationQuery += parser.join.labelToken[0]+":"+nlabel+",";
+            nlabel = getNextLabel();
+            newLabels.add(nlabel);
+            createRelationQuery += parser.join.labelToken[1]+":"+nlabel;
+            createRelationQuery += " create ("+parser.join.labelToken[0]+")-[r: join]->("+parser.join.labelToken[1]+")";
+            System.out.println(createRelationQuery);
+            db.execute(createRelationQuery);
         }
         tx.success();
         tx.close();
+    }
+
+    public Result getJoinResult(Parser parser, int index){
+        String cypherQuery1 = "Match ";
+
+        for(Edge edge: parser.edges){
+            if(parser.labels[index].contains(parser.labelsMap.get(edge.from.token)))
+                cypherQuery1 += edge.plainString()+",";
+        }
+        cypherQuery1 = cypherQuery1.substring(0, cypherQuery1.length()-1);
+        cypherQuery1 += " where ";
+
+        for(LabelPattern node: parser.labels[index]) {
+            cypherQuery1 += node.token + ":" + parser.labelsMap.get(node.token).name + " AND " + node.token + ":" + parser.from[index] + " AND ";
+        }
+        cypherQuery1 = cypherQuery1.substring(0, cypherQuery1.length()-4);
+
+        cypherQuery1 = addMatchingWhere(cypherQuery1, parser, parser.labels[index]);
+
+        cypherQuery1 += " Set ";
+        for(LabelPattern label: parser.labels[index]){
+            String nextlabel = getNextLabel();
+            cypherQuery1 += label.token+":"+nextlabel+",";
+            LabelPattern labelPattern = parser.labelsMap.get(label.token);
+            labelPattern.name = nextlabel;
+            newLabels.add(nextlabel);
+        }
+        cypherQuery1= cypherQuery1.substring(0, cypherQuery1.length()-1);
+        cypherQuery1 += " Return "+parser.join.labelToken[index];
+        System.out.println(cypherQuery1);
+        Result rs1 = db.execute(cypherQuery1);
+        return rs1;
     }
 
     public void makeJoinWithoutWhere(Parser parser){
         String completeQuery = "Match ";
         String cypherQuery1 = "Match ";
         for(Edge edge: parser.edges){
-            if(parser.labels1.contains(parser.labelsMap.get(edge.from.token)))
+            if(parser.labels[0].contains(parser.labelsMap.get(edge.from.token)))
                 cypherQuery1 += edge.plainString()+",";
             completeQuery += edge.plainString()+",";
         }
@@ -378,31 +440,31 @@ public class QueryCypher {
         completeQuery = completeQuery.substring(0, completeQuery.length()-1);
         completeQuery += " where ";
 
-        for(LabelPattern node: parser.labels1) {
-            cypherQuery1 += node.token + ":" + parser.labelsMap.get(node.token).name + " AND " + node.token + ":" + parser.from1 + " AND ";
-            completeQuery += node.token + ":" + parser.labelsMap.get(node.token).name + " AND " + node.token + ":" + parser.from1 + " AND ";
+        for(LabelPattern node: parser.labels[0]) {
+            cypherQuery1 += node.token + ":" + parser.labelsMap.get(node.token).name + " AND " + node.token + ":" + parser.from[0] + " AND ";
+            completeQuery += node.token + ":" + parser.labelsMap.get(node.token).name + " AND " + node.token + ":" + parser.from[0] + " AND ";
         }
         cypherQuery1 = cypherQuery1.substring(0, cypherQuery1.length()-4);
 
-        cypherQuery1 = addMatchingWhere(cypherQuery1, parser, parser.labels1);
+        cypherQuery1 = addMatchingWhere(cypherQuery1, parser, parser.labels[0]);
         cypherQuery1 = addReturn(cypherQuery1, parser.project);
         System.out.println(cypherQuery1);
 
         String cypherQuery2 = "Match ";
         for(Edge edge: parser.edges){
-            if(parser.labels2.contains(parser.labelsMap.get(edge.from.token)))
+            if(parser.labels[1].contains(parser.labelsMap.get(edge.from.token)))
                 cypherQuery2 += edge.plainString()+",";
         }
         cypherQuery2 = cypherQuery2.substring(0, cypherQuery2.length()-1);
         cypherQuery2 += " where ";
-        for(LabelPattern node: parser.labels2) {
-            cypherQuery2 += node.token + ":" + parser.labelsMap.get(node.token).name + " AND " + node.token + ":" + parser.from2 + " AND ";
-            completeQuery += node.token + ":" + parser.labelsMap.get(node.token).name + " AND " + node.token + ":" + parser.from2 + " AND ";
+        for(LabelPattern node: parser.labels[1]) {
+            cypherQuery2 += node.token + ":" + parser.labelsMap.get(node.token).name + " AND " + node.token + ":" + parser.from[1] + " AND ";
+            completeQuery += node.token + ":" + parser.labelsMap.get(node.token).name + " AND " + node.token + ":" + parser.from[1] + " AND ";
         }
         completeQuery = completeQuery.substring(0, completeQuery.length()-4);
         cypherQuery2 = cypherQuery2.substring(0, cypherQuery2.length()-4);
 
-        cypherQuery2 = addMatchingWhere(cypherQuery2, parser, parser.labels2);
+        cypherQuery2 = addMatchingWhere(cypherQuery2, parser, parser.labels[1]);
         cypherQuery2 = addReturn(cypherQuery2, parser.project);
         completeQuery += " AND ";
         completeQuery = addWheres(completeQuery, parser.wheres);

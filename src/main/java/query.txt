@@ -75,8 +75,9 @@ WHERE
 a1.name=moony AND a3.name=prongs
 a5.name=harry AND a7.name=ron
 
-
-
+/**
+Join nodes that are related to moony in two graphs and have same name
+**/
 SELECT
 a1 A
 a2 A
