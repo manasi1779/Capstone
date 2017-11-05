@@ -348,15 +348,15 @@ public class QueryCypher {
         while(rs1.hasNext()){
             Map<String, Object> record = rs1.next();
             String createRelationQuery =
-                    "Match ("+parser.join.labelToken[0]+":"+parser.labelsMap.get(parser.join.labelToken[0]).name+"{"+
-                            parser.join.property[0]+":\""+
-                            ((Node)record.get(parser.join.labelToken[0])).getProperty(parser.join.property[0])+
-                            "\"}), (" +
-                            parser.join.labelToken[1]+":"+parser.labelsMap.get(parser.join.labelToken[1]).name+"{"+
-                            parser.join.property[1]+":\""+
-                            ((Node)record.get(parser.join.labelToken[0])).getProperty(parser.join.property[0])+
-                            "\"}) " +
-                            " Set ";
+                "Match ("+parser.join.labelToken[0]+":"+parser.labelsMap.get(parser.join.labelToken[0]).name+"{"+
+                        parser.join.property[0]+":\""+
+                        ((Node)record.get(parser.join.labelToken[0])).getProperty(parser.join.property[0])+
+                        "\"}), (" +
+                        parser.join.labelToken[1]+":"+parser.labelsMap.get(parser.join.labelToken[1]).name+"{"+
+                        parser.join.property[1]+":\""+
+                        ((Node)record.get(parser.join.labelToken[0])).getProperty(parser.join.property[0])+
+                        "\"}) " +
+                        " Set ";
             String nlabel =     getNextLabel();
             newLabels.add(nlabel);
             createRelationQuery += parser.join.labelToken[0]+":"+nlabel+",";
@@ -368,7 +368,7 @@ public class QueryCypher {
             db.execute(createRelationQuery);
         }
 
-        while(rs2.hasNext()){
+    /*    while(rs2.hasNext()){
             Map<String, Object> record = rs2.next();
             String createRelationQuery =
                     "Match ("+parser.join.labelToken[0]+":"+parser.labelsMap.get(parser.join.labelToken[0]).name+"{"+
@@ -390,7 +390,7 @@ public class QueryCypher {
             System.out.println(createRelationQuery);
             db.execute(createRelationQuery);
         }
-        tx.success();
+    */    tx.success();
         tx.close();
     }
 
@@ -408,7 +408,6 @@ public class QueryCypher {
             cypherQuery1 += node.token + ":" + parser.labelsMap.get(node.token).name + " AND " + node.token + ":" + parser.from[index] + " AND ";
         }
         cypherQuery1 = cypherQuery1.substring(0, cypherQuery1.length()-4);
-
         cypherQuery1 = addMatchingWhere(cypherQuery1, parser, parser.labels[index]);
 
         cypherQuery1 += " Set ";
