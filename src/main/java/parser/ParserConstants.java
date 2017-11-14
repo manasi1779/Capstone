@@ -154,7 +154,6 @@ public interface ParserConstants {
     "\"\\\"\"",
     "<STRING_BODY>",
     "\"\\\"\"",
-    "\"\"",
     "\"(\"",
     "\".\"",
     "\")\"",

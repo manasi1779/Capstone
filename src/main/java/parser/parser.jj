@@ -163,10 +163,10 @@ void Start():
             (from[1] = FromClause())?
         )?
         (edges = MatchClause())
-        (groupBy = GroupClause())?
-        (project = ProjectClause())?
-        (wheres = WhereClause())?
-        (join = JoinClause())?
+        ((groupBy = GroupClause()) | <EOL>)
+        ((project = ProjectClause()) | <EOL>)
+        ((wheres = WhereClause()) | <EOL>)
+        ((join = JoinClause()) | <EOL>)
     )
 }
 
@@ -216,31 +216,35 @@ ArrayList ProjectClause():{
     (
         <SPACE>
         (
-            t = <IDENTIFIER>
-            {
-                projects.add(t.toString());
-            }
-        )
-        |
-        (
-            aggr = <MAX>
+            (
+                t = <IDENTIFIER>
+                {
+                    projects.add(t.toString());
+                }
+            )
             |
-            aggr = <MIN>
-            |
-            aggr = <SUM>
-            |
-            aggr = <COUNT>
-            |
-            aggr = <AVG>
-            ("(")
-            label = <IDENTIFIER>
-            (".")
-            property = <IDENTIFIER>
-            (")")
-            {
-                operator = new AggrOperator(aggr.toString(), label.toString(), property.toString());
-                projects.add(operator);
-            }
+            (
+                (
+                    aggr = <MAX>
+                    |
+                    aggr = <MIN>
+                    |
+                    aggr = <SUM>
+                    |
+                    aggr = <COUNT>
+                    |
+                    aggr = <AVG>
+                )
+                ("(")
+                label = <IDENTIFIER>
+                (".")
+                property = <IDENTIFIER>
+                (")")
+                {
+                    operator = new AggrOperator(aggr.toString(), label.toString(), property.toString());
+                    projects.add(operator);
+                }
+            )
         )
     )*
     <EOL>
@@ -254,9 +258,7 @@ String FromClause():{
 {
     <FROM>
     <SPACE>
-    (
-        t = <IDENTIFIER>
-    )
+    t = <IDENTIFIER>
     <EOL>
     {
         return t.toString();
@@ -272,10 +274,8 @@ ArrayList MatchClause():{
     <EOL>
     (
         f = <IDENTIFIER>
-        (
-            <SPACE>
-            t = <IDENTIFIER>
-        )
+        <SPACE>
+        t = <IDENTIFIER>
         <EOL>
         {
         from = f.toString();
@@ -296,11 +296,10 @@ Group GroupClause():{
 {
     <GROUP>
     <EOL>
-    (
-        label = <IDENTIFIER>
-        "."
-        property = <IDENTIFIER>
-    )
+    label = <IDENTIFIER>
+    "."
+    property = <IDENTIFIER>
+    <EOL>
     {
         group = new Group(label.toString(), property.toString());
         return group;

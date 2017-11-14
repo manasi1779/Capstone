@@ -25,57 +25,83 @@
       jj_consume_token(EOL);
       break;
     case SELECT:
-    case 48:
+      labels[0] = SelectClause();
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case FROM:
+        from[0] = FromClause();
+        break;
+      default:
+        jj_la1[0] = jj_gen;
+        ;
+      }
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SELECT:
-        labels[0] = SelectClause();
+        labels[1] = SelectClause();
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case FROM:
-          from[0] = FromClause();
+          from[1] = FromClause();
           break;
         default:
-          jj_la1[0] = jj_gen;
+          jj_la1[1] = jj_gen;
           ;
         }
-        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-        case SELECT:
-          labels[1] = SelectClause();
-          switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-          case FROM:
-            from[1] = FromClause();
-            break;
-          default:
-            jj_la1[1] = jj_gen;
-            ;
-          }
-          break;
-        default:
-          jj_la1[2] = jj_gen;
-          ;
-        }
-        edges = MatchClause();
+        break;
+      default:
+        jj_la1[2] = jj_gen;
+        ;
+      }
+      edges = MatchClause();
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case GROUP:
         groupBy = GroupClause();
         break;
-      case 48:
-        jj_consume_token(48);
-        project = ProjectClause();
-        break;
-        jj_consume_token(48);
-        wheres = WhereClause();
-        break;
-        jj_consume_token(48);
-        join = JoinClause();
-        break;
-        jj_consume_token(48);
+      case EOL:
+        jj_consume_token(EOL);
         break;
       default:
         jj_la1[3] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case PROJECT:
+        project = ProjectClause();
+        break;
+      case EOL:
+        jj_consume_token(EOL);
+        break;
+      default:
+        jj_la1[4] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case WHERE:
+        wheres = WhereClause();
+        break;
+      case EOL:
+        jj_consume_token(EOL);
+        break;
+      default:
+        jj_la1[5] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case JOIN:
+        join = JoinClause();
+        break;
+      case EOL:
+        jj_consume_token(EOL);
+        break;
+      default:
+        jj_la1[6] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
       break;
     default:
-      jj_la1[4] = jj_gen;
+      jj_la1[7] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -94,7 +120,7 @@
         ;
         break;
       default:
-        jj_la1[5] = jj_gen;
+        jj_la1[8] = jj_gen;
         break label_1;
       }
       token = jj_consume_token(IDENTIFIER);
@@ -108,7 +134,7 @@
           ;
           break;
         default:
-          jj_la1[6] = jj_gen;
+          jj_la1[9] = jj_gen;
           break label_2;
         }
         jj_consume_token(SPACE);
@@ -133,22 +159,17 @@
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SPACE:
-      case MAX:
-      case MIN:
-      case COUNT:
-      case AVG:
-      case SUM:
         ;
         break;
       default:
-        jj_la1[7] = jj_gen;
+        jj_la1[10] = jj_gen;
         break label_3;
       }
+      jj_consume_token(SPACE);
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case SPACE:
-        jj_consume_token(SPACE);
+      case IDENTIFIER:
         t = jj_consume_token(IDENTIFIER);
-                projects.add(t.toString());
+                    projects.add(t.toString());
         break;
       case MAX:
       case MIN:
@@ -170,22 +191,22 @@
           break;
         case AVG:
           aggr = jj_consume_token(AVG);
-          jj_consume_token(49);
-          label = jj_consume_token(IDENTIFIER);
-          jj_consume_token(50);
-          property = jj_consume_token(IDENTIFIER);
-          jj_consume_token(51);
-                operator = new AggrOperator(aggr.toString(), label.toString(), property.toString());
-                projects.add(operator);
           break;
         default:
-          jj_la1[8] = jj_gen;
+          jj_la1[11] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
+        jj_consume_token(48);
+        label = jj_consume_token(IDENTIFIER);
+        jj_consume_token(49);
+        property = jj_consume_token(IDENTIFIER);
+        jj_consume_token(50);
+                    operator = new AggrOperator(aggr.toString(), label.toString(), property.toString());
+                    projects.add(operator);
         break;
       default:
-        jj_la1[9] = jj_gen;
+        jj_la1[12] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -218,7 +239,7 @@
         ;
         break;
       default:
-        jj_la1[10] = jj_gen;
+        jj_la1[13] = jj_gen;
         break label_4;
       }
       f = jj_consume_token(IDENTIFIER);
@@ -241,8 +262,9 @@
     jj_consume_token(GROUP);
     jj_consume_token(EOL);
     label = jj_consume_token(IDENTIFIER);
-    jj_consume_token(50);
+    jj_consume_token(49);
     property = jj_consume_token(IDENTIFIER);
+    jj_consume_token(EOL);
         group = new Group(label.toString(), property.toString());
         {if (true) return group;}
     throw new Error("Missing return statement in function");
@@ -262,7 +284,7 @@
         ;
         break;
       default:
-        jj_la1[11] = jj_gen;
+        jj_la1[14] = jj_gen;
         break label_5;
       }
             complexWhere = null;
@@ -274,7 +296,7 @@
           ;
           break;
         default:
-          jj_la1[12] = jj_gen;
+          jj_la1[15] = jj_gen;
           break label_6;
         }
         jj_consume_token(SPACE);
@@ -300,15 +322,15 @@
     jj_consume_token(JOIN);
     jj_consume_token(EOL);
     db1 = jj_consume_token(IDENTIFIER);
-    jj_consume_token(50);
+    jj_consume_token(49);
     label1 = jj_consume_token(IDENTIFIER);
-    jj_consume_token(50);
+    jj_consume_token(49);
     property1 = jj_consume_token(IDENTIFIER);
     operator = jj_consume_token(CONDITIONALOPERATOR);
     db2 = jj_consume_token(IDENTIFIER);
-    jj_consume_token(50);
+    jj_consume_token(49);
     label2 = jj_consume_token(IDENTIFIER);
-    jj_consume_token(50);
+    jj_consume_token(49);
     property2 = jj_consume_token(IDENTIFIER);
     jj_consume_token(EOL);
         {if (true) return new Join(db1.toString(), db2.toString(), label1.toString(), property1.toString(), label2.toString(), property2.toString(), operator.toString());}
@@ -319,7 +341,7 @@
     Where where = null;
     Token label = null, property = null, operator = null, value =null;
     label = jj_consume_token(IDENTIFIER);
-    jj_consume_token(50);
+    jj_consume_token(49);
     property = jj_consume_token(IDENTIFIER);
     operator = jj_consume_token(CONDITIONALOPERATOR);
     jj_consume_token(OPEN_STRING);
@@ -342,7 +364,7 @@
   public Token jj_nt;
   private int jj_ntk;
   private int jj_gen;
-  final private int[] jj_la1 = new int[13];
+  final private int[] jj_la1 = new int[16];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -350,10 +372,10 @@
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x10000,0x10000,0x4000000,0x4000000,0x4020000,0x0,0x10,0x10,0x0,0x10,0x0,0x0,0x10,};
+      jj_la1_0 = new int[] {0x10000,0x10000,0x4000000,0x8020000,0x80020000,0x20020000,0x40020000,0x4020000,0x0,0x10,0x10,0x0,0x0,0x0,0x0,0x10,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x10000,0x10000,0x400,0x0,0x7c,0x7c,0x7c,0x400,0x400,0x0,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x400,0x0,0x0,0x7c,0x47c,0x400,0x400,0x0,};
    }
 
   /** Constructor with InputStream. */
@@ -367,7 +389,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 13; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 16; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -381,7 +403,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 13; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 16; i++) jj_la1[i] = -1;
   }
 
   /** Constructor. */
@@ -391,7 +413,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 13; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 16; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -401,7 +423,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 13; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 16; i++) jj_la1[i] = -1;
   }
 
   /** Constructor with generated Token Manager. */
@@ -410,7 +432,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 13; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 16; i++) jj_la1[i] = -1;
   }
 
   /** Reinitialise. */
@@ -419,7 +441,7 @@
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 13; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 16; i++) jj_la1[i] = -1;
   }
 
   private Token jj_consume_token(int kind) throws ParseException {
@@ -470,12 +492,12 @@
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[52];
+    boolean[] la1tokens = new boolean[51];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 13; i++) {
+    for (int i = 0; i < 16; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {
@@ -487,7 +509,7 @@
         }
       }
     }
-    for (int i = 0; i < 52; i++) {
+    for (int i = 0; i < 51; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

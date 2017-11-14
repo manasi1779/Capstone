@@ -12,9 +12,6 @@ WHERE
 d.first="Timothy" AND d.last="Wilde"
 
 
-
-
-
 get list of groups
     query pattern with one group at a time
     add labels to the matching nodes

@@ -53,12 +53,12 @@ public class QueryCypher {
         else {
             //warm up and then perform comparisons
             createAndRunCompleteCypherQuery(parser);
-            applyPatternThenPredicate(parser);
+        /*    applyPatternThenPredicate(parser);
             if(parser.groupBy != null){
                 executeGroupBy.groupBy(db, parser);
             }
             newLabel.tearDown(db);
-
+        */
             applyPredicateThenPattern(parser);
             if(parser.groupBy != null){
                 executeGroupBy.groupBy(db, parser);
@@ -124,6 +124,8 @@ public class QueryCypher {
         ArrayList<LabelPattern> labels = new ArrayList<>();
         ArrayList<Object> projects = new ArrayList<>();
         ArrayList<Edge> edges = new ArrayList<>();
+        Group groupBy = null;
+        Join join = null;
         HashMap labelMap = new HashMap();
         for(Parser parser: parsers){
             wheres.addAll(parser.wheres);
@@ -155,6 +157,10 @@ public class QueryCypher {
             );
             edges.addAll(parser.edges);
             labelMap.putAll(parser.labelsMap);
+            if(parser.groupBy != null)
+                groupBy = parser.groupBy;
+            if(parser.join != null)
+                join = parser.join;
         }
         Parser parser = new Parser(System.in);
         parser.project = projects;
@@ -162,6 +168,8 @@ public class QueryCypher {
         parser.labels[0] = labels;
         parser.labelsMap = labelMap;
         parser.edges = edges;
+        parser.join = join;
+        parser.groupBy = groupBy;
         return parser;
     }
 
