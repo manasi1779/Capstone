@@ -1,10 +1,47 @@
 SELECT
+d director
+m movie
+g genre
+MATCH
+m g
+m d
+GROUP BY
+g.genre
+PROJECT COUNT(m.year)
+WHERE
+d.first="Timothy" AND d.last="Wilde"
+
+
+
+
+
+get list of groups
+    query pattern with one group at a time
+    add labels to the matching nodes
+    map label to group
+query with each label and add new node specifying required group function
+
+Multiple group labels:
+Within each group label, apply the query for next label
+
+SELECT
+a actor
+m movie
+g genre
+MATCH
+m a
+m g
+GROUP BY
+a.first
+PROJECT MAX(m.year)
+
+SELECT
 a1 A
 a2 A
 MATCH
 a1 a2
 WHERE
-a2.name=moony AND a1.name=padfoot
+a2.name="moony" AND a1.name="padfoot"
 
 SELECT
 a1 A
@@ -15,8 +52,8 @@ MATCH
 a1 a2
 a3 a4
 WHERE
-a2.name=moony AND a1.name=padfoot
-a3.name=wormtail AND a4.name=prongs
+a2.name="moony" AND a1.name="padfoot"
+a3.name="wormtail" AND a4.name="prongs"
 
 SELECT
 a1 movie
@@ -34,18 +71,18 @@ a4.genre=Comedy AND a2.last=Borg
 SELECT
 a1 movie
 a3 director
-PROJECT a1
 MATCH
 a1 a3
+PROJECT a1
 WHERE
-a3.first=Timothy AND a3.last=Wilde
+a3.first="Timothy" AND a3.last="Wilde"
 
 SELECT
 a1 movie
 a2 actor
-PROJECT a1
 MATCH
 a1 a2
+PROJECT a1
 WHERE
 a2.first=Erin AND a2.last=Borg
 
@@ -86,10 +123,10 @@ SELECT
 a3 A
 a4 A
 FROM G2
-PROJECT a1 a3
 MATCH
 a1 a2
 a3 a4
+PROJECT a1 a3
 WHERE
 a2.name=moony AND a4.name=moony
 JOIN

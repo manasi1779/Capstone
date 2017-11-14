@@ -2,12 +2,13 @@
     package parser;
     import java.io.*;
     import java.util.*;
-    import graphql.*;
+    import metadata.*;
 
     public class Parser implements ParserConstants {
         public HashMap<String, LabelPattern> labelsMap = new HashMap();
         public String from[] = new String[2];
-        public ArrayList<String> project = new ArrayList();
+        public Group groupBy;
+        public ArrayList<Object> project = new ArrayList();
         public ArrayList<LabelPattern> labels[] = new ArrayList[2];
         public ArrayList<Edge> edges = new ArrayList();
         public ArrayList<ComplexWhere> wheres = new ArrayList();
@@ -16,7 +17,6 @@
         public static void main( String[] args )throws ParseException, TokenMgrError {
             Parser parser = new Parser( System.in ) ;
             parser.Start();
-            System.out.println("Done Parsing");
         }
 
   final public void Start() throws ParseException {
@@ -25,59 +25,57 @@
       jj_consume_token(EOL);
       break;
     case SELECT:
-      labels[0] = SelectClause();
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case FROM:
-        from[0] = FromClause();
-        break;
-      default:
-        jj_la1[0] = jj_gen;
-        ;
-      }
+    case 48:
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SELECT:
-        labels[1] = SelectClause();
+        labels[0] = SelectClause();
         switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
         case FROM:
-          from[1] = FromClause();
+          from[0] = FromClause();
           break;
         default:
-          jj_la1[1] = jj_gen;
+          jj_la1[0] = jj_gen;
           ;
         }
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case SELECT:
+          labels[1] = SelectClause();
+          switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+          case FROM:
+            from[1] = FromClause();
+            break;
+          default:
+            jj_la1[1] = jj_gen;
+            ;
+          }
+          break;
+        default:
+          jj_la1[2] = jj_gen;
+          ;
+        }
+        edges = MatchClause();
+        groupBy = GroupClause();
         break;
-      default:
-        jj_la1[2] = jj_gen;
-        ;
-      }
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case PROJECT:
+      case 48:
+        jj_consume_token(48);
         project = ProjectClause();
+        break;
+        jj_consume_token(48);
+        wheres = WhereClause();
+        break;
+        jj_consume_token(48);
+        join = JoinClause();
+        break;
+        jj_consume_token(48);
         break;
       default:
         jj_la1[3] = jj_gen;
-        ;
-      }
-      edges = MatchClause();
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case WHERE:
-        wheres = WhereClause();
-        break;
-      default:
-        jj_la1[4] = jj_gen;
-        ;
-      }
-      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
-      case JOIN:
-        join = JoinClause();
-        break;
-      default:
-        jj_la1[5] = jj_gen;
-        ;
+        jj_consume_token(-1);
+        throw new ParseException();
       }
       break;
     default:
-      jj_la1[6] = jj_gen;
+      jj_la1[4] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
@@ -96,7 +94,7 @@
         ;
         break;
       default:
-        jj_la1[7] = jj_gen;
+        jj_la1[5] = jj_gen;
         break label_1;
       }
       token = jj_consume_token(IDENTIFIER);
@@ -110,7 +108,7 @@
           ;
           break;
         default:
-          jj_la1[8] = jj_gen;
+          jj_la1[6] = jj_gen;
           break label_2;
         }
         jj_consume_token(SPACE);
@@ -128,21 +126,69 @@
 
   final public ArrayList ProjectClause() throws ParseException {
     ArrayList projects = new ArrayList();
-    Token t = null;
+    Token t = null, aggr = null, label, property;
+    AggrOperator operator;
     jj_consume_token(PROJECT);
     label_3:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case SPACE:
+      case MAX:
+      case MIN:
+      case COUNT:
+      case AVG:
+      case SUM:
         ;
         break;
       default:
-        jj_la1[9] = jj_gen;
+        jj_la1[7] = jj_gen;
         break label_3;
       }
-      jj_consume_token(SPACE);
-      t = jj_consume_token(IDENTIFIER);
-            projects.add(t.toString());
+      switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+      case SPACE:
+        jj_consume_token(SPACE);
+        t = jj_consume_token(IDENTIFIER);
+                projects.add(t.toString());
+        break;
+      case MAX:
+      case MIN:
+      case COUNT:
+      case AVG:
+      case SUM:
+        switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
+        case MAX:
+          aggr = jj_consume_token(MAX);
+          break;
+        case MIN:
+          aggr = jj_consume_token(MIN);
+          break;
+        case SUM:
+          aggr = jj_consume_token(SUM);
+          break;
+        case COUNT:
+          aggr = jj_consume_token(COUNT);
+          break;
+        case AVG:
+          aggr = jj_consume_token(AVG);
+          jj_consume_token(49);
+          label = jj_consume_token(IDENTIFIER);
+          jj_consume_token(50);
+          property = jj_consume_token(IDENTIFIER);
+          jj_consume_token(51);
+                operator = new AggrOperator(aggr.toString(), label.toString(), property.toString());
+                projects.add(operator);
+          break;
+        default:
+          jj_la1[8] = jj_gen;
+          jj_consume_token(-1);
+          throw new ParseException();
+        }
+        break;
+      default:
+        jj_la1[9] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
     }
     jj_consume_token(EOL);
         {if (true) return projects;}
@@ -185,6 +231,20 @@
         edges.add(edge);
     }
         {if (true) return edges;}
+    throw new Error("Missing return statement in function");
+  }
+
+//TODO allow list of groupbys
+  final public Group GroupClause() throws ParseException {
+    Group group;
+    Token label, property;
+    jj_consume_token(GROUP);
+    jj_consume_token(EOL);
+    label = jj_consume_token(IDENTIFIER);
+    jj_consume_token(50);
+    property = jj_consume_token(IDENTIFIER);
+        group = new Group(label.toString(), property.toString());
+        {if (true) return group;}
     throw new Error("Missing return statement in function");
   }
 
@@ -240,15 +300,15 @@
     jj_consume_token(JOIN);
     jj_consume_token(EOL);
     db1 = jj_consume_token(IDENTIFIER);
-    jj_consume_token(39);
+    jj_consume_token(50);
     label1 = jj_consume_token(IDENTIFIER);
-    jj_consume_token(39);
+    jj_consume_token(50);
     property1 = jj_consume_token(IDENTIFIER);
     operator = jj_consume_token(CONDITIONALOPERATOR);
     db2 = jj_consume_token(IDENTIFIER);
-    jj_consume_token(39);
+    jj_consume_token(50);
     label2 = jj_consume_token(IDENTIFIER);
-    jj_consume_token(39);
+    jj_consume_token(50);
     property2 = jj_consume_token(IDENTIFIER);
     jj_consume_token(EOL);
         {if (true) return new Join(db1.toString(), db2.toString(), label1.toString(), property1.toString(), label2.toString(), property2.toString(), operator.toString());}
@@ -259,10 +319,12 @@
     Where where = null;
     Token label = null, property = null, operator = null, value =null;
     label = jj_consume_token(IDENTIFIER);
-    jj_consume_token(39);
+    jj_consume_token(50);
     property = jj_consume_token(IDENTIFIER);
     operator = jj_consume_token(CONDITIONALOPERATOR);
-    value = jj_consume_token(IDENTIFIER);
+    jj_consume_token(OPEN_STRING);
+    value = jj_consume_token(STRING_BODY);
+    jj_consume_token(CLOSE_STRING);
         if(value.kind == NUMERIC)
             where = new Where(label.toString(), property.toString(), operator.toString(), Integer.parseInt(value.toString()));
         else
@@ -288,10 +350,10 @@
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x10000,0x10000,0x4000000,0x40000000,0x10000000,0x20000000,0x4020000,0x0,0x10,0x10,0x0,0x0,0x10,};
+      jj_la1_0 = new int[] {0x10000,0x10000,0x4000000,0x4000000,0x4020000,0x0,0x10,0x10,0x0,0x10,0x0,0x0,0x10,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x10,0x0,0x0,0x10,0x10,0x0,};
+      jj_la1_1 = new int[] {0x0,0x0,0x0,0x10000,0x10000,0x400,0x0,0x7c,0x7c,0x7c,0x400,0x400,0x0,};
    }
 
   /** Constructor with InputStream. */
@@ -408,7 +470,7 @@
   /** Generate ParseException. */
   public ParseException generateParseException() {
     jj_expentries.clear();
-    boolean[] la1tokens = new boolean[40];
+    boolean[] la1tokens = new boolean[52];
     if (jj_kind >= 0) {
       la1tokens[jj_kind] = true;
       jj_kind = -1;
@@ -425,7 +487,7 @@
         }
       }
     }
-    for (int i = 0; i < 40; i++) {
+    for (int i = 0; i < 52; i++) {
       if (la1tokens[i]) {
         jj_expentry = new int[1];
         jj_expentry[0] = i;

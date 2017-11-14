@@ -57,32 +57,52 @@ public interface ParserConstants {
   /** RegularExpression Id. */
   int SELECT = 26;
   /** RegularExpression Id. */
-  int MATCH = 27;
+  int GROUP = 27;
   /** RegularExpression Id. */
-  int WHERE = 28;
+  int MATCH = 28;
   /** RegularExpression Id. */
-  int JOIN = 29;
+  int WHERE = 29;
   /** RegularExpression Id. */
-  int PROJECT = 30;
+  int JOIN = 30;
   /** RegularExpression Id. */
-  int STARTSWITH = 31;
+  int PROJECT = 31;
   /** RegularExpression Id. */
-  int ENDSWITH = 32;
+  int STARTSWITH = 32;
   /** RegularExpression Id. */
-  int CONDITIONALOPERATOR = 33;
+  int ENDSWITH = 33;
   /** RegularExpression Id. */
-  int LOGICALOPERATOR = 34;
+  int MAX = 34;
   /** RegularExpression Id. */
-  int NUMERIC = 35;
+  int MIN = 35;
   /** RegularExpression Id. */
-  int IDENTIFIER = 36;
+  int COUNT = 36;
   /** RegularExpression Id. */
-  int LETTER = 37;
+  int AVG = 37;
   /** RegularExpression Id. */
-  int DIGIT = 38;
+  int SUM = 38;
+  /** RegularExpression Id. */
+  int CONDITIONALOPERATOR = 39;
+  /** RegularExpression Id. */
+  int LOGICALOPERATOR = 40;
+  /** RegularExpression Id. */
+  int NUMERIC = 41;
+  /** RegularExpression Id. */
+  int IDENTIFIER = 42;
+  /** RegularExpression Id. */
+  int LETTER = 43;
+  /** RegularExpression Id. */
+  int DIGIT = 44;
+  /** RegularExpression Id. */
+  int OPEN_STRING = 45;
+  /** RegularExpression Id. */
+  int STRING_BODY = 46;
+  /** RegularExpression Id. */
+  int CLOSE_STRING = 47;
 
   /** Lexical state. */
   int DEFAULT = 0;
+  /** Lexical state. */
+  int STRING = 1;
 
   /** Literal token values. */
   String[] tokenImage = {
@@ -113,19 +133,31 @@ public interface ParserConstants {
     "\"[\"",
     "\"]\"",
     "\"SELECT\"",
+    "\"GROUP BY\"",
     "\"MATCH\"",
     "\"WHERE\"",
     "\"JOIN\"",
     "\"PROJECT\"",
     "<STARTSWITH>",
     "<ENDSWITH>",
+    "\"MAX\"",
+    "\"MIN\"",
+    "\"COUNT\"",
+    "\"AVG\"",
+    "\"SUM\"",
     "<CONDITIONALOPERATOR>",
     "<LOGICALOPERATOR>",
     "<NUMERIC>",
     "<IDENTIFIER>",
     "<LETTER>",
     "<DIGIT>",
+    "\"\\\"\"",
+    "<STRING_BODY>",
+    "\"\\\"\"",
+    "\"\"",
+    "\"(\"",
     "\".\"",
+    "\")\"",
   };
 
 }
