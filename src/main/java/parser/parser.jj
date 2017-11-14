@@ -222,29 +222,7 @@ ArrayList ProjectClause():{
                     projects.add(t.toString());
                 }
             )
-            |
-            (
-                (
-                    aggr = <MAX>
-                    |
-                    aggr = <MIN>
-                    |
-                    aggr = <SUM>
-                    |
-                    aggr = <COUNT>
-                    |
-                    aggr = <AVG>
-                )
-                ("(")
-                label = <IDENTIFIER>
-                (".")
-                property = <IDENTIFIER>
-                (")")
-                {
-                    operator = new AggrOperator(aggr.toString(), label.toString(), property.toString());
-                    projects.add(operator);
-                }
-            )
+
         )
     )*
     <EOL>
@@ -291,7 +269,7 @@ ArrayList MatchClause():{
 //TODO allow list of groupbys
 Group GroupClause():{
     Group group;
-    Token label, property;
+    Token label, property, aggr, aggrLabel, aggrProperty;
 }
 {
     <GROUP>
@@ -300,8 +278,29 @@ Group GroupClause():{
     "."
     property = <IDENTIFIER>
     <EOL>
+    (
+        (
+            aggr = <MAX>
+            |
+            aggr = <MIN>
+            |
+            aggr = <SUM>
+            |
+            aggr = <COUNT>
+            |
+            aggr = <AVG>
+        )
+        ("(")
+        aggrLabel = <IDENTIFIER>
+        (".")
+        aggrProperty = <IDENTIFIER>
+        (")")
+    )
+    <EOL>
     {
-        group = new Group(label.toString(), property.toString());
+
+        AggrOperator operator = new AggrOperator(aggr.toString(), aggrLabel.toString(), aggrProperty.toString());
+        group = new Group(label.toString(), property.toString(), operator);
         return group;
     }
 }

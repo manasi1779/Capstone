@@ -1,8 +1,8 @@
 package metadata;
 
 public class AggrOperator {
-    String operator;
-    String label, property;
+    public String operator;
+    public String label, property;
 
     public AggrOperator(String operator, String label, String property){
         this.operator = operator;
@@ -10,4 +10,12 @@ public class AggrOperator {
         this.property = property;
     }
 
+    @Override
+    public String toString(){
+        return operator+"("+label+"."+property+")";
+    }
+
+    public String getLabel(){
+        return operator+"_"+label+"_"+property;
+    }
 }

@@ -31,7 +31,7 @@ public class ExecutePredicate {
                 cypherQuery += where.property+":\""+where.value+"\",";
             }
             cypherQuery = cypherQuery.substring(0, cypherQuery.length()-1)+"} "+")";
-            cypherQuery += "set "+key+":"+newLabel;
+            cypherQuery += " set "+key+":"+newLabel;
             LabelPattern changeLabel = parser.labelsMap.get(key);
             changeLabel.name = newLabel;
             System.out.println(cypherQuery);

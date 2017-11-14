@@ -13,7 +13,7 @@ public class ExecuteMatch {
     public void constructMatchSetReturn(GraphDatabaseService db, Parser parser){
         String cypherQuery = updateCypher.addMatch(parser.edges);
         // put in labelsMap new label and set it to result as well
-        cypherQuery += "Set ";
+        cypherQuery += " Set ";
         NewLabel labelMaker = NewLabel.getInstance();
         for(LabelPattern label: parser.labels[0]){
             String nextlabel = labelMaker.getNextLabel();
@@ -22,7 +22,6 @@ public class ExecuteMatch {
             labelPattern.name = nextlabel;
         }
         cypherQuery = cypherQuery.substring(0, cypherQuery.length()-1);
-        cypherQuery = updateCypher.addIntermediateReturn(cypherQuery, parser.project, parser.wheres);
         System.out.println(cypherQuery);
         db.execute(cypherQuery);
     }

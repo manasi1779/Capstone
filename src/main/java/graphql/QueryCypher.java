@@ -58,12 +58,13 @@ public class QueryCypher {
                 executeGroupBy.groupBy(db, parser);
             }
             newLabel.tearDown(db);
+            //before executing new query, ned to reset the labels map
         */
             applyPredicateThenPattern(parser);
             if(parser.groupBy != null){
                 executeGroupBy.groupBy(db, parser);
             }
-            newLabel.tearDown(db);
+        //    newLabel.tearDown(db);
         }
         newLabel.tearDown(db);
     }

@@ -7,10 +7,10 @@ m g
 m d
 GROUP BY
 g.genre
-PROJECT COUNT(m.year)
+COUNT(m.year)
+PROJECT d m
 WHERE
 d.first="Timothy" AND d.last="Wilde"
-
 
 get list of groups
     query pattern with one group at a time
