@@ -55,10 +55,10 @@ public class UpdateCypher {
         return cypherQuery;
     }
 
-    public String addReturn(String cypherQuery, ArrayList<String> labels){
+    public String addReturn(String cypherQuery, ArrayList<LabelPattern> labels){
         cypherQuery += " return ";
-        for(String label: labels){
-            cypherQuery += label+",";
+        for(LabelPattern label: labels){
+            cypherQuery += label.token+",";
         }
         cypherQuery = cypherQuery.substring(0, cypherQuery.length()-1);
         return cypherQuery;

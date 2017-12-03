@@ -6,9 +6,8 @@ MATCH
 m g
 m d
 GROUP BY
-g.genre
+g.genre d.first
 COUNT(m.year)
-PROJECT d m
 WHERE
 d.first="Timothy" AND d.last="Wilde"
 
@@ -16,7 +15,7 @@ get list of groups
     query pattern with one group at a time
     add labels to the matching nodes
     map label to group
-query with each label and add new node specifying required group function
+query with each label and add new attribute specifying required group function
 
 Multiple group labels:
 Within each group label, apply the query for next label

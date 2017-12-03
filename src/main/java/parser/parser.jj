@@ -13,7 +13,8 @@ PARSER_BEGIN(Parser)
     public class Parser {
         public HashMap<String, LabelPattern> labelsMap = new HashMap();
         public String from[] = new String[2];
-        public Group groupBy;
+        public ArrayList<Group> groupBy = new ArrayList();
+        public AggrOperator operator;
         public ArrayList<Object> project = new ArrayList();
         public ArrayList<LabelPattern> labels[] = new ArrayList[2];
         public ArrayList<Edge> edges = new ArrayList();
@@ -163,7 +164,11 @@ void Start():
             (from[1] = FromClause())?
         )?
         (edges = MatchClause())
-        ((groupBy = GroupClause()) | <EOL>)
+        ((
+          groupBy = GroupClause()
+          <EOL>
+          operator = AggrOperatorClause()
+        ) | <EOL>)
         ((project = ProjectClause()) | <EOL>)
         ((wheres = WhereClause()) | <EOL>)
         ((join = JoinClause()) | <EOL>)
@@ -266,18 +271,31 @@ ArrayList MatchClause():{
         return edges;
     }
 }
-//TODO allow list of groupbys
-Group GroupClause():{
-    Group group;
-    Token label, property, aggr, aggrLabel, aggrProperty;
+ArrayList GroupClause():{
+    ArrayList<Group> groups = new ArrayList();
+    Token label, property;
 }
 {
     <GROUP>
     <EOL>
-    label = <IDENTIFIER>
-    "."
-    property = <IDENTIFIER>
-    <EOL>
+    (
+        label = <IDENTIFIER>
+        "."
+        property = <IDENTIFIER>
+        (<SPACE>)?
+        {
+            Group group = new Group(label.toString(), property.toString());
+            groups.add(group);
+        }
+    )*
+    {
+        return groups;
+    }
+}
+AggrOperator AggrOperatorClause():{
+    Token aggr, aggrLabel, aggrProperty;
+}
+{
     (
         (
             aggr = <MAX>
@@ -296,15 +314,11 @@ Group GroupClause():{
         aggrProperty = <IDENTIFIER>
         (")")
     )
-    <EOL>
     {
-
         AggrOperator operator = new AggrOperator(aggr.toString(), aggrLabel.toString(), aggrProperty.toString());
-        group = new Group(label.toString(), property.toString(), operator);
-        return group;
+        return operator;
     }
 }
-
 ArrayList WhereClause():
 {
     ArrayList<ComplexWhere> wheres = new ArrayList();

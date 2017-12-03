@@ -71,8 +71,13 @@ public class QueryCypher {
 
     public void createAndRunCompleteCypherQuery(Parser parser){
         String completeCypherQuery = updateCypher.addMatch(parser.edges);
-        completeCypherQuery = updateCypher.addWheres(completeCypherQuery, parser.wheres);
-        completeCypherQuery = updateCypher.addIntermediateReturn(completeCypherQuery, parser.project, parser.wheres);
+        if(parser.wheres.size() != 0){
+            completeCypherQuery = updateCypher.addWheres(completeCypherQuery, parser.wheres);
+            completeCypherQuery = updateCypher.addIntermediateReturn(completeCypherQuery, parser.project, parser.wheres);
+        }
+        else{
+            completeCypherQuery = updateCypher.addReturn(completeCypherQuery, parser.labels[0]);
+        }
         System.out.println(completeCypherQuery);
         executeCypherQuery(completeCypherQuery);
     }
@@ -125,7 +130,8 @@ public class QueryCypher {
         ArrayList<LabelPattern> labels = new ArrayList<>();
         ArrayList<Object> projects = new ArrayList<>();
         ArrayList<Edge> edges = new ArrayList<>();
-        Group groupBy = null;
+        ArrayList<Group> groups = new ArrayList<>();
+        AggrOperator operator = null;
         Join join = null;
         HashMap labelMap = new HashMap();
         for(Parser parser: parsers){
@@ -156,12 +162,20 @@ public class QueryCypher {
                     }
                 }
             );
+            parser.groupBy.stream().forEach(
+                o -> {
+                    if (! groups.contains((o))){
+                        groups.add(o);
+                    }
+                }
+            );
             edges.addAll(parser.edges);
             labelMap.putAll(parser.labelsMap);
-            if(parser.groupBy != null)
-                groupBy = parser.groupBy;
             if(parser.join != null)
                 join = parser.join;
+            if(parser.operator != null){
+                operator = parser.operator;
+            }
         }
         Parser parser = new Parser(System.in);
         parser.project = projects;
@@ -170,7 +184,8 @@ public class QueryCypher {
         parser.labelsMap = labelMap;
         parser.edges = edges;
         parser.join = join;
-        parser.groupBy = groupBy;
+        parser.groupBy = groups;
+        parser.operator = operator;
         return parser;
     }
 
